@@ -1,0 +1,4 @@
+enum CAMERAMODE {
+  front,
+  back,
+}
