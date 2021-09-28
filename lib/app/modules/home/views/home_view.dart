@@ -7,6 +7,7 @@ import 'package:aicamera/app/modules/home/controllers/home_controller.dart';
 import 'package:aicamera/app/modules/imagepreview/views/imagepreview_view.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:get/get.dart';
 
@@ -53,86 +54,108 @@ class HomeViewState extends State<HomeView>
               children: [
                 //here is the main work going on....
                 Expanded(
-                    child: Container(
-                      child: Stack(
+                    child: Stack(
                   children: [
-                      Column(
+                    Column(
+                      children: [
+                        Expanded(child: cameraPreviewWidget()),
+                      ],
+                    ),
+                    Obx(() => hcontroller.islogoattached.value &&
+                            hcontroller.logowithImage != null
+                        ? Center(
+                            child: Image.file(
+                            File(
+                              hcontroller.logowithImage!.path,
+                            ),
+                            width: 200,
+                            height: 200,
+                          ))
+                        : Container()),
+                    Obx(() => hcontroller.islogo.value
+                        ? Positioned(
+                            top: hcontroller.logoDir.value ==
+                                        LogoDirection.topleft ||
+                                    hcontroller.logoDir.value ==
+                                        LogoDirection.topright
+                                ? 30
+                                : null,
+                            left: hcontroller.logoDir.value ==
+                                        LogoDirection.topleft ||
+                                    hcontroller.logoDir.value ==
+                                        LogoDirection.bottomleft
+                                ? 10
+                                : null,
+                            right: hcontroller.logoDir.value ==
+                                        LogoDirection.topright ||
+                                    hcontroller.logoDir.value ==
+                                        LogoDirection.bottomright
+                                ? 10
+                                : null,
+                            bottom: hcontroller.logoDir.value ==
+                                        LogoDirection.bottomleft ||
+                                    hcontroller.logoDir.value ==
+                                        LogoDirection.bottomright
+                                ? 10
+                                : null,
+                            child: Image.file(
+                              File(hcontroller.logoImageFile!.path),
+                              height: 60,
+                              width: 60,
+                            ))
+                        : Container()),
+                    Positioned(
+                      top: 25,
+                      right: 10,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Expanded(child: cameraPreviewWidget()),
+                          Row(
+                            children: [
+                              IconButton(
+                                color: Themes.white,
+                                icon: Icon(
+                                  hcontroller.controller!.value.flashMode ==
+                                          FlashMode.off
+                                      ? Icons.flash_off
+                                      : hcontroller.controller!.value
+                                                  .flashMode ==
+                                              FlashMode.auto
+                                          ? Icons.flash_auto
+                                          : hcontroller.controller!.value
+                                                      .flashMode ==
+                                                  FlashMode.always
+                                              ? Icons.flash_on
+                                              : hcontroller.controller!.value
+                                                          .flashMode ==
+                                                      FlashMode.torch
+                                                  ? Icons.highlight
+                                                  : Icons.flash_on_outlined,
+                                  size: (MediaQuery.of(context).size.height *
+                                      0.045),
+                                ),
+                                onPressed: hcontroller.onFlashModeButtonPressed,
+                              ),
+                              IconButton(
+                                color: Themes.white,
+                                icon: Icon(
+                                  Icons.settings,
+                                  size: (MediaQuery.of(context).size.height *
+                                      0.045),
+                                ),
+                                onPressed: () async {
+                                  await hcontroller.getLogoImage();
+                                  print('clicked');
+                                },
+                              ),
+                            ],
+                          ),
+                          flashModeControlRowWidget(),
                         ],
                       ),
-                   Obx(()=> Positioned(
-                          top: hcontroller.logoDir.value == LogoDirection.topleft ||
-                                  hcontroller.logoDir.value  == LogoDirection.topright
-                              ? 30
-                              : null,
-                          left: hcontroller.logoDir.value  == LogoDirection.topleft ||
-                                  hcontroller.logoDir.value  == LogoDirection.bottomleft
-                              ? 10
-                              : null,
-                          right: hcontroller.logoDir.value  == LogoDirection.topright ||
-                                  hcontroller.logoDir.value  == LogoDirection.bottomright
-                              ? 10
-                              : null,
-                          bottom: hcontroller.logoDir.value  ==
-                                      LogoDirection.bottomleft ||
-                                  hcontroller.logoDir.value  == LogoDirection.bottomright
-                              ? 10
-                              : null,
-                          child:const Icon(
-                            Icons.emoji_emotions,
-                            size: 60,
-                          ))),
-                      Positioned(
-                        top: 25,
-                        right: 10,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                  color: Themes.white,
-                                  icon: Icon(
-                                    hcontroller.controller!.value.flashMode ==
-                                            FlashMode.off
-                                        ? Icons.flash_off
-                                        : hcontroller.controller!.value
-                                                    .flashMode ==
-                                                FlashMode.auto
-                                            ? Icons.flash_auto
-                                            : hcontroller.controller!.value
-                                                        .flashMode ==
-                                                    FlashMode.always
-                                                ? Icons.flash_on
-                                                : hcontroller.controller!.value
-                                                            .flashMode ==
-                                                        FlashMode.torch
-                                                    ? Icons.highlight
-                                                    : Icons.flash_on_outlined,
-                                    size: (MediaQuery.of(context).size.height *
-                                        0.045),
-                                  ),
-                                  onPressed: hcontroller.onFlashModeButtonPressed,
-                                ),
-                                IconButton(
-                                  color: Themes.white,
-                                  icon: Icon(
-                                    Icons.settings,
-                                    size: (MediaQuery.of(context).size.height *
-                                        0.045),
-                                  ),
-                                  onPressed: () {},
-                                ),
-                              ],
-                            ),
-                            flashModeControlRowWidget(),
-                          ],
-                        ),
-                      )
+                    )
                   ],
-                ),
-                    )),
+                )),
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: Constant.defaultPadding * 3.5,
@@ -330,20 +353,23 @@ class HomeViewState extends State<HomeView>
   ///its a method used to press button to click the picture
   ///
   void onTakePictureButtonPressed() {
-    takePicture().then((XFile? file) {
+    takePicture().then((XFile? file) async {
       if (mounted) {
         setState(() {
           hcontroller.cameraimageFile = file;
-          //       Fluttertoast.showToast(
-          //     msg: "This is Center Short Toast",
-          //     toastLength: Toast.LENGTH_SHORT,
-          //     gravity: ToastGravity.CENTER,
-          //     timeInSecForIosWeb: 1,
-          //     backgroundColor: Colors.red,
-          //     textColor: Colors.white,
-          //     fontSize: 16.0
-          // );
+
+          hcontroller.mergingImageWithLogo();
+          Fluttertoast.showToast(
+              msg: "Image Capture",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
         });
+        if (hcontroller.islogo.value) await hcontroller.mergingImageWithLogo();
+        print(hcontroller.islogoattached.value);
         // if (file != null)
         //   customSnackbar(message: 'Picture saved to ${file.path}');
       }
