@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:aicamera/app/constant/constants.dart';
+import 'package:aicamera/app/constant/enum.dart';
 import 'package:aicamera/app/constant/themes.dart';
 import 'package:aicamera/app/modules/home/controllers/home_controller.dart';
 import 'package:aicamera/app/modules/imagepreview/views/imagepreview_view.dart';
-import 'package:aicamera/app/routes/app_pages.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +25,16 @@ class HomeViewState extends State<HomeView>
   void initState() {
     ambiguate(WidgetsBinding.instance)?.addObserver(this);
     setCameras();
+    animationInitalized();
     super.initState();
+  }
+
+  void animationInitalized() {
+    hcontroller.flashModeControlRowAnimationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
+    hcontroller.flashModeControlRowAnimation = CurvedAnimation(
+        parent: hcontroller.flashModeControlRowAnimationController,
+        curve: Curves.easeInCubic);
   }
 
   ///It will set the camera of the windows
@@ -42,7 +51,88 @@ class HomeViewState extends State<HomeView>
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                Expanded(child: cameraPreviewWidget()),
+                //here is the main work going on....
+                Expanded(
+                    child: Container(
+                      child: Stack(
+                  children: [
+                      Column(
+                        children: [
+                          Expanded(child: cameraPreviewWidget()),
+                        ],
+                      ),
+                   Obx(()=> Positioned(
+                          top: hcontroller.logoDir.value == LogoDirection.topleft ||
+                                  hcontroller.logoDir.value  == LogoDirection.topright
+                              ? 30
+                              : null,
+                          left: hcontroller.logoDir.value  == LogoDirection.topleft ||
+                                  hcontroller.logoDir.value  == LogoDirection.bottomleft
+                              ? 10
+                              : null,
+                          right: hcontroller.logoDir.value  == LogoDirection.topright ||
+                                  hcontroller.logoDir.value  == LogoDirection.bottomright
+                              ? 10
+                              : null,
+                          bottom: hcontroller.logoDir.value  ==
+                                      LogoDirection.bottomleft ||
+                                  hcontroller.logoDir.value  == LogoDirection.bottomright
+                              ? 10
+                              : null,
+                          child:const Icon(
+                            Icons.emoji_emotions,
+                            size: 60,
+                          ))),
+                      Positioned(
+                        top: 25,
+                        right: 10,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                IconButton(
+                                  color: Themes.white,
+                                  icon: Icon(
+                                    hcontroller.controller!.value.flashMode ==
+                                            FlashMode.off
+                                        ? Icons.flash_off
+                                        : hcontroller.controller!.value
+                                                    .flashMode ==
+                                                FlashMode.auto
+                                            ? Icons.flash_auto
+                                            : hcontroller.controller!.value
+                                                        .flashMode ==
+                                                    FlashMode.always
+                                                ? Icons.flash_on
+                                                : hcontroller.controller!.value
+                                                            .flashMode ==
+                                                        FlashMode.torch
+                                                    ? Icons.highlight
+                                                    : Icons.flash_on_outlined,
+                                    size: (MediaQuery.of(context).size.height *
+                                        0.045),
+                                  ),
+                                  onPressed: hcontroller.onFlashModeButtonPressed,
+                                ),
+                                IconButton(
+                                  color: Themes.white,
+                                  icon: Icon(
+                                    Icons.settings,
+                                    size: (MediaQuery.of(context).size.height *
+                                        0.045),
+                                  ),
+                                  onPressed: () {},
+                                ),
+                              ],
+                            ),
+                            flashModeControlRowWidget(),
+                          ],
+                        ),
+                      )
+                  ],
+                ),
+                    )),
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: Constant.defaultPadding * 3.5,
@@ -55,17 +145,17 @@ class HomeViewState extends State<HomeView>
                       InkWell(
                         onTap: () {
                           Get.to(
-                            ImagepreviewView(hcontroller.imageFile),
+                            ImagepreviewView(hcontroller.cameraimageFile),
                           );
                         },
-                        child: hcontroller.imageFile == null
+                        child: hcontroller.cameraimageFile == null
                             ? const CircleAvatar(
                                 backgroundColor: Themes.grey,
                                 radius: Constant.defaultRadius * 1.4,
                               )
                             : CircleAvatar(
                                 backgroundImage: FileImage(
-                                    File(hcontroller.imageFile!.path)),
+                                    File(hcontroller.cameraimageFile!.path)),
                                 radius: Constant.defaultRadius * 1.4,
                               ),
                       ),
@@ -125,6 +215,56 @@ class HomeViewState extends State<HomeView>
     );
   }
 
+  ///set flash mode
+
+  Widget flashModeControlRowWidget() {
+    return SizeTransition(
+      sizeFactor: hcontroller.flashModeControlRowAnimation,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.flash_off),
+            color: hcontroller.controller!.value.flashMode == FlashMode.off
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.off),
+          ),
+          IconButton(
+            icon: const Icon(Icons.flash_auto),
+            color: hcontroller.controller!.value.flashMode == FlashMode.auto
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.auto),
+          ),
+          IconButton(
+            icon: const Icon(Icons.flash_on),
+            color: hcontroller.controller!.value.flashMode == FlashMode.always
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.always),
+          ),
+          IconButton(
+            icon: const Icon(Icons.highlight),
+            color: hcontroller.controller!.value.flashMode == FlashMode.torch
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.torch),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void onSetFlashModeButtonPressed(FlashMode mode) {
+    hcontroller.setFlashMode(mode).then((_) {
+      if (mounted) setState(() {});
+      // customSnackbar(
+      //     message: 'Flash mode set to ${mode.toString().split('.').last}');
+    });
+  }
+
   ///It is used to toggle the camera from front to back and back to front
   ///it takes integer index parameter which by default 0
   ///it return void
@@ -141,7 +281,7 @@ class HomeViewState extends State<HomeView>
         // customSnackbar(
         //     title: "",
         //     message:
-        //         'Camera error ${hcontroller.controller!.value.errorDescription}');
+        //                                                                                        'Camera error ${hcontroller.controller!.value.errorDescription}');
       }
     });
 
@@ -193,7 +333,16 @@ class HomeViewState extends State<HomeView>
     takePicture().then((XFile? file) {
       if (mounted) {
         setState(() {
-          hcontroller.imageFile = file;
+          hcontroller.cameraimageFile = file;
+          //       Fluttertoast.showToast(
+          //     msg: "This is Center Short Toast",
+          //     toastLength: Toast.LENGTH_SHORT,
+          //     gravity: ToastGravity.CENTER,
+          //     timeInSecForIosWeb: 1,
+          //     backgroundColor: Colors.red,
+          //     textColor: Colors.white,
+          //     fontSize: 16.0
+          // );
         });
         // if (file != null)
         //   customSnackbar(message: 'Picture saved to ${file.path}');

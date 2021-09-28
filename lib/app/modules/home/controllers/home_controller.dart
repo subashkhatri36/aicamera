@@ -1,3 +1,4 @@
+import 'package:aicamera/app/constant/enum.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,8 +15,17 @@ class HomeController extends GetxController {
 
   bool isCameraInitialized = false;
 
+  //working for flash
+  late AnimationController flashModeControlRowAnimationController;
+  late Animation<double> flashModeControlRowAnimation;
+
+  ///image choose to switch camera preview with capture image
+  RxBool imageClicked = false.obs;
+
 //file to sore image
-  XFile? imageFile;
+  XFile? cameraimageFile;
+  XFile? logoImageFile;
+  Rx<LogoDirection> logoDir = LogoDirection.topright.obs;
 
 //zoom size
   double minAvailableZoom = 1.0;
@@ -33,6 +43,14 @@ class HomeController extends GetxController {
 
   @override
   void onClose() {}
+  //flash button pressed
+  void onFlashModeButtonPressed() {
+    if (flashModeControlRowAnimationController.value == 1) {
+      flashModeControlRowAnimationController.reverse();
+    } else {
+      flashModeControlRowAnimationController.forward();
+    }
+  }
 
   /// Returns a suitable camera icon for [direction].
   IconData getCameraLensIcon(CameraLensDirection direction) {
@@ -45,6 +63,20 @@ class HomeController extends GetxController {
         return Icons.camera;
       default:
         throw ArgumentError('Unknown lens direction');
+    }
+  }
+
+  Future<void> setFlashMode(FlashMode mode) async {
+    if (controller == null) {
+      return;
+    }
+    try {
+      await controller!.setFlashMode(mode);
+    } on CameraException catch (e) {
+      print(e);
+      // customSnackbar(
+      //     message: 'Cannot Appicable', snackPosition: SnackPosition.TOP);
+      //rethrow;
     }
   }
 
