@@ -4,12 +4,16 @@ import 'dart:typed_data';
 import 'package:aicamera/app/constant/enum.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image/image.dart' as ui;
+import 'dart:ui' as ui;
 
 class HomeController extends GetxController {
   static HomeController homecontroller = Get.find();
+
+  //repaint boundary
+  GlobalKey screenshotKey = GlobalKey();
 
   ///camera controller
   CameraController? controller;
@@ -32,11 +36,14 @@ class HomeController extends GetxController {
   XFile? logoImageFile;
   File? logowithImage;
   Rx<LogoDirection> logoDir = LogoDirection.topleft.obs;
+  Uint8List? pngBytes;
   //image picker
   final ImagePicker picker = ImagePicker();
 
   RxBool islogo = false.obs;
   RxBool islogoattached = false.obs;
+  RxBool isImageClicked = false.obs;
+  RxBool hideSaveButton = true.obs;
 
 //zoom size
   double minAvailableZoom = 1.0;
@@ -61,6 +68,19 @@ class HomeController extends GetxController {
     } else {
       flashModeControlRowAnimationController.forward();
     }
+  }
+
+  savedImageIntoPath() async {
+    hideSaveButton.value = true;
+    Future.delayed(Duration(seconds: 15));
+    //https://www.kindacode.com/article/how-to-programmatically-take-screenshots-in-flutter/
+    RenderRepaintBoundary boundary = screenshotKey.currentContext!
+        .findRenderObject() as RenderRepaintBoundary;
+
+    ui.Image image = (await boundary.toImage());
+    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    pngBytes = byteData!.buffer.asUint8List();
+    isImageClicked.value = false;
   }
 
   Future getLogoImage() async {
@@ -109,37 +129,7 @@ class HomeController extends GetxController {
 
 //merge with logo and display in screen
   Future<void> mergingImageWithLogo() async {
-    File originalImage = File(cameraimageFile!.path);
-    File logoImage = File(logoImageFile!.path);
-    ui.Image? originalImageFile =
-        ui.decodeImage(originalImage.readAsBytesSync());
-    ui.Image? logoImgFile = ui.decodeImage(logoImage.readAsBytesSync());
-
-    // add watermark over originalImage
-    // initialize width and height of watermark image
-    ui.Image image = ui.Image(160, 50);
-    ui.drawImage(image, logoImgFile!);
-
-    // give position to watermark over image
-    // originalImage.width - 160 - 25 (width of originalImage - width of watermarkImage - extra margin you want to give)
-    // originalImage.height - 50 - 25 (height of originalImage - height of watermarkImage - extra margin you want to give)
-    ui.copyInto(originalImageFile!, image,
-        dstX: originalImageFile.width - 160 - 25,
-        dstY: originalImageFile.height - 50 - 25);
-
-    // for adding text over image
-    // Draw some text using 24pt arial font
-    // 100 is position from x-axis, 120 is position from y-axis
-    //ui.drawString(originalImageFile, ui.arial_24, 100, 120, 'Think Different');
-
-    // Store the watermarked image to a File
-    List<int> wmImage = ui.encodePng(originalImageFile);
-    logowithImage = File.fromRawPath(Uint8List.fromList(wmImage));
     islogoattached.value = true;
-
-    // setState(() {
-    //   _watermarkedImage = File.fromRawPath(Uint8List.fromList(wmImage));
-    // });
   }
 
   void logError(String code, String? message) {

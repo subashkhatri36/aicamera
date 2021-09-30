@@ -54,108 +54,157 @@ class HomeViewState extends State<HomeView>
               children: [
                 //here is the main work going on....
                 Expanded(
-                    child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        Expanded(child: cameraPreviewWidget()),
-                      ],
-                    ),
-                    Obx(() => hcontroller.islogoattached.value &&
-                            hcontroller.logowithImage != null
-                        ? Center(
-                            child: Image.file(
-                            File(
-                              hcontroller.logowithImage!.path,
-                            ),
-                            width: 200,
-                            height: 200,
-                          ))
-                        : Container()),
-                    Obx(() => hcontroller.islogo.value
-                        ? Positioned(
-                            top: hcontroller.logoDir.value ==
-                                        LogoDirection.topleft ||
-                                    hcontroller.logoDir.value ==
-                                        LogoDirection.topright
-                                ? 30
-                                : null,
-                            left: hcontroller.logoDir.value ==
-                                        LogoDirection.topleft ||
-                                    hcontroller.logoDir.value ==
-                                        LogoDirection.bottomleft
-                                ? 10
-                                : null,
-                            right: hcontroller.logoDir.value ==
-                                        LogoDirection.topright ||
-                                    hcontroller.logoDir.value ==
-                                        LogoDirection.bottomright
-                                ? 10
-                                : null,
-                            bottom: hcontroller.logoDir.value ==
-                                        LogoDirection.bottomleft ||
-                                    hcontroller.logoDir.value ==
-                                        LogoDirection.bottomright
-                                ? 10
-                                : null,
-                            child: Image.file(
-                              File(hcontroller.logoImageFile!.path),
-                              height: 60,
-                              width: 60,
-                            ))
-                        : Container()),
-                    Positioned(
-                      top: 25,
-                      right: 10,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                  child: RepaintBoundary(
+                      key: hcontroller.screenshotKey,
+                      child: Stack(
                         children: [
-                          Row(
+                          Column(
                             children: [
-                              IconButton(
-                                color: Themes.white,
-                                icon: Icon(
-                                  hcontroller.controller!.value.flashMode ==
-                                          FlashMode.off
-                                      ? Icons.flash_off
-                                      : hcontroller.controller!.value
-                                                  .flashMode ==
-                                              FlashMode.auto
-                                          ? Icons.flash_auto
-                                          : hcontroller.controller!.value
-                                                      .flashMode ==
-                                                  FlashMode.always
-                                              ? Icons.flash_on
-                                              : hcontroller.controller!.value
-                                                          .flashMode ==
-                                                      FlashMode.torch
-                                                  ? Icons.highlight
-                                                  : Icons.flash_on_outlined,
-                                  size: (MediaQuery.of(context).size.height *
-                                      0.045),
-                                ),
-                                onPressed: hcontroller.onFlashModeButtonPressed,
-                              ),
-                              IconButton(
-                                color: Themes.white,
-                                icon: Icon(
-                                  Icons.settings,
-                                  size: (MediaQuery.of(context).size.height *
-                                      0.045),
-                                ),
-                                onPressed: () async {
-                                  await hcontroller.getLogoImage();
-                                  print('clicked');
-                                },
-                              ),
+                              Expanded(
+                                  child: Obx(() =>
+                                      hcontroller.isImageClicked.isTrue
+                                          ? Image.file(
+                                              File(hcontroller
+                                                  .cameraimageFile!.path),
+                                              fit: BoxFit.fill)
+                                          : cameraPreviewWidget())),
                             ],
                           ),
-                          flashModeControlRowWidget(),
+                          Obx(() => hcontroller.islogoattached.value &&
+                                  hcontroller.logowithImage != null
+                              ? Center(
+                                  child: Image.file(
+                                  File(
+                                    hcontroller.logowithImage!.path,
+                                  ),
+                                  width: 200,
+                                  height: 200,
+                                ))
+                              : Container()),
+                          Obx(
+                            () => hcontroller.islogo.value
+                                ? Positioned(
+                                    top: hcontroller.logoDir.value ==
+                                                LogoDirection.topleft ||
+                                            hcontroller.logoDir.value ==
+                                                LogoDirection.topright
+                                        ? 30
+                                        : null,
+                                    left: hcontroller.logoDir.value ==
+                                                LogoDirection.topleft ||
+                                            hcontroller.logoDir.value ==
+                                                LogoDirection.bottomleft
+                                        ? 10
+                                        : null,
+                                    right: hcontroller.logoDir.value ==
+                                                LogoDirection.topright ||
+                                            hcontroller.logoDir.value ==
+                                                LogoDirection.bottomright
+                                        ? 10
+                                        : null,
+                                    bottom: hcontroller.logoDir.value ==
+                                                LogoDirection.bottomleft ||
+                                            hcontroller.logoDir.value ==
+                                                LogoDirection.bottomright
+                                        ? 10
+                                        : null,
+                                    child: hcontroller.logoImageFile == null
+                                        ? Icon(Icons.face, color: Themes.white)
+                                        : Image.file(
+                                            File(hcontroller
+                                                .logoImageFile!.path),
+                                            height: 50,
+                                            width: 50,
+                                          ))
+                                : const Icon(Icons.face, color: Themes.white),
+                          ),
+                          Obx(
+                            () => hcontroller.isImageClicked.isTrue
+                                ? Obx(() => hcontroller.hideSaveButton.isTrue
+                                    ? Container()
+                                    : Positioned(
+                                        top: 25,
+                                        right: 10,
+                                        child: InkWell(
+                                            onTap: () {
+                                              hcontroller.savedImageIntoPath();
+                                            },
+                                            child: const Icon(
+                                              Icons.check,
+                                              color: Themes.white,
+                                              size: 30,
+                                            ))))
+                                : Positioned(
+                                    top: 25,
+                                    right: 10,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              color: Themes.white,
+                                              icon: Icon(
+                                                hcontroller.controller!.value
+                                                            .flashMode ==
+                                                        FlashMode.off
+                                                    ? Icons.flash_off
+                                                    : hcontroller
+                                                                .controller!
+                                                                .value
+                                                                .flashMode ==
+                                                            FlashMode.auto
+                                                        ? Icons.flash_auto
+                                                        : hcontroller
+                                                                    .controller!
+                                                                    .value
+                                                                    .flashMode ==
+                                                                FlashMode.always
+                                                            ? Icons.flash_on
+                                                            : hcontroller
+                                                                        .controller!
+                                                                        .value
+                                                                        .flashMode ==
+                                                                    FlashMode
+                                                                        .torch
+                                                                ? Icons
+                                                                    .highlight
+                                                                : Icons
+                                                                    .flash_on_outlined,
+                                                size: (MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.045),
+                                              ),
+                                              onPressed: hcontroller
+                                                  .onFlashModeButtonPressed,
+                                            ),
+                                            IconButton(
+                                              color: Themes.white,
+                                              icon: Icon(
+                                                Icons.settings,
+                                                size: (MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.045),
+                                              ),
+                                              onPressed: () async {
+                                                await hcontroller
+                                                    .getLogoImage();
+                                                print('clicked');
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        flashModeControlRowWidget(),
+                                      ],
+                                    ),
+                                  ),
+                          )
                         ],
-                      ),
-                    )
-                  ],
-                )),
+                      )),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: Constant.defaultPadding * 3.5,
@@ -168,19 +217,22 @@ class HomeViewState extends State<HomeView>
                       InkWell(
                         onTap: () {
                           Get.to(
-                            ImagepreviewView(hcontroller.cameraimageFile),
+                            ImagepreviewView(hcontroller.pngBytes!),
                           );
                         },
-                        child: hcontroller.cameraimageFile == null
-                            ? const CircleAvatar(
-                                backgroundColor: Themes.grey,
-                                radius: Constant.defaultRadius * 1.4,
-                              )
-                            : CircleAvatar(
-                                backgroundImage: FileImage(
-                                    File(hcontroller.cameraimageFile!.path)),
-                                radius: Constant.defaultRadius * 1.4,
-                              ),
+                        child: Obx(
+                          () => !hcontroller.isImageClicked.value &&
+                                  hcontroller.pngBytes == null
+                              ? const CircleAvatar(
+                                  backgroundColor: Themes.grey,
+                                  radius: Constant.defaultRadius * 1.4,
+                                )
+                              : CircleAvatar(
+                                  backgroundImage:
+                                      MemoryImage(hcontroller.pngBytes!),
+                                  radius: Constant.defaultRadius * 1.4,
+                                ),
+                        ),
                       ),
                       GestureDetector(
                         onTap: hcontroller.controller!.value.isInitialized
@@ -368,10 +420,8 @@ class HomeViewState extends State<HomeView>
               textColor: Colors.white,
               fontSize: 16.0);
         });
-        if (hcontroller.islogo.value) await hcontroller.mergingImageWithLogo();
-        print(hcontroller.islogoattached.value);
-        // if (file != null)
-        //   customSnackbar(message: 'Picture saved to ${file.path}');
+        hcontroller.isImageClicked.value = true;
+        hcontroller.hideSaveButton.value = false;
       }
     });
   }
