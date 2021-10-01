@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:aicamera/app/constant/constants.dart';
@@ -120,20 +121,7 @@ class HomeViewState extends State<HomeView>
                           ),
                           Obx(
                             () => hcontroller.isImageClicked.isTrue
-                                ? Obx(() => hcontroller.hideSaveButton.isTrue
-                                    ? Container()
-                                    : Positioned(
-                                        top: 25,
-                                        right: 10,
-                                        child: InkWell(
-                                            onTap: () {
-                                              hcontroller.savedImageIntoPath();
-                                            },
-                                            child: const Icon(
-                                              Icons.check,
-                                              color: Themes.white,
-                                              size: 30,
-                                            ))))
+                                ? Container()
                                 : Positioned(
                                     top: 25,
                                     right: 10,
@@ -216,9 +204,11 @@ class HomeViewState extends State<HomeView>
                     children: [
                       InkWell(
                         onTap: () {
-                          Get.to(
-                            ImagepreviewView(hcontroller.pngBytes!),
-                          );
+                          if (hcontroller.pngBytes != null) {
+                            Get.to(
+                              ImagepreviewView(hcontroller.pngBytes),
+                            );
+                          }
                         },
                         child: Obx(
                           () => !hcontroller.isImageClicked.value &&
@@ -227,11 +217,16 @@ class HomeViewState extends State<HomeView>
                                   backgroundColor: Themes.grey,
                                   radius: Constant.defaultRadius * 1.4,
                                 )
-                              : CircleAvatar(
-                                  backgroundImage:
-                                      MemoryImage(hcontroller.pngBytes!),
-                                  radius: Constant.defaultRadius * 1.4,
-                                ),
+                              : hcontroller.pngBytes == null
+                                  ? const CircleAvatar(
+                                      backgroundColor: Themes.grey,
+                                      radius: Constant.defaultRadius * 1.4,
+                                    )
+                                  : CircleAvatar(
+                                      backgroundImage:
+                                          MemoryImage(hcontroller.pngBytes!),
+                                      radius: Constant.defaultRadius * 1.4,
+                                    ),
                         ),
                       ),
                       GestureDetector(
@@ -421,7 +416,10 @@ class HomeViewState extends State<HomeView>
               fontSize: 16.0);
         });
         hcontroller.isImageClicked.value = true;
-        hcontroller.hideSaveButton.value = false;
+      //  hcontroller.hideSaveButton.value = true;       
+      
+          Timer(const Duration(seconds: 5), hcontroller.savedImageIntoPath);
+        
       }
     });
   }

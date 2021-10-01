@@ -43,7 +43,6 @@ class HomeController extends GetxController {
   RxBool islogo = false.obs;
   RxBool islogoattached = false.obs;
   RxBool isImageClicked = false.obs;
-  RxBool hideSaveButton = true.obs;
 
 //zoom size
   double minAvailableZoom = 1.0;
@@ -71,8 +70,6 @@ class HomeController extends GetxController {
   }
 
   savedImageIntoPath() async {
-    hideSaveButton.value = true;
-    Future.delayed(Duration(seconds: 15));
     //https://www.kindacode.com/article/how-to-programmatically-take-screenshots-in-flutter/
     RenderRepaintBoundary boundary = screenshotKey.currentContext!
         .findRenderObject() as RenderRepaintBoundary;
