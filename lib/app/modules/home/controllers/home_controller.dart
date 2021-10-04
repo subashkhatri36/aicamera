@@ -33,23 +33,34 @@ class HomeController extends GetxController {
 
 //file to sore image
   XFile? cameraimageFile;
+
+  ///this variable store logo image that will be generated form setting tab
   XFile? logoImageFile;
+
+  ///this variable will store converted both logo and capture image
   File? logowithImage;
-  Rx<LogoDirection> logoDir = LogoDirection.topleft.obs;
+
+  //this will give your the direction of logo
+  LogoDirection logoDir = LogoDirection.topleft;
+  //this variable controll the ui where logo should be located
+  RxBool logopositionchange = false.obs;
   Uint8List? pngBytes;
   //image picker
   final ImagePicker picker = ImagePicker();
 
+//use to check if there is logo selected or not in ui
   RxBool islogo = false.obs;
+  //this variable will identify if logo is attached along with image or not
   RxBool islogoattached = false.obs;
+  //this varaible will remind if image is clicked or not
   RxBool isImageClicked = false.obs;
 
-//zoom size
+//zoom size defined
   double minAvailableZoom = 1.0;
   double maxAvailablezoom = 1.0;
   double currentScale = 1.0;
   double baseScale = 1.0;
-
+//time defined
   String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
 
   ///counting pointers(number of user fingers on screen)
@@ -66,9 +77,12 @@ class HomeController extends GetxController {
       flashModeControlRowAnimationController.reverse();
     } else {
       flashModeControlRowAnimationController.forward();
+      // Future.delayed(const Duration(seconds: 200));
+      // flashModeControlRowAnimationController.reverse();
     }
   }
 
+//this method use to  capture and save with logo and assign all to its local variable
   savedImageIntoPath() async {
     //https://www.kindacode.com/article/how-to-programmatically-take-screenshots-in-flutter/
     RenderRepaintBoundary boundary = screenshotKey.currentContext!
@@ -80,6 +94,7 @@ class HomeController extends GetxController {
     isImageClicked.value = false;
   }
 
+//it help to pick image from local device
   Future getLogoImage() async {
     try {
       final pickedFile = await picker.pickImage(
@@ -110,6 +125,7 @@ class HomeController extends GetxController {
     }
   }
 
+//it will help to set the flash mode
   Future<void> setFlashMode(FlashMode mode) async {
     if (controller == null) {
       return;
