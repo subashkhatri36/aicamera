@@ -4,13 +4,15 @@ part of 'app_pages.dart';
 abstract class Routes {
   Routes._();
 
-  static const HOME = _Paths.HOME;
-  static const SPLASH = _Paths.SPLASH;
-  static const IMAGEPREVIEW = _Paths.IMAGEPREVIEW;
+  static const home = _Paths.home;
+  static const splash = _Paths.splash;
+  static const imagepreview = _Paths.imagepreview;
+  static const setting = _Paths.setting;
 }
 
 abstract class _Paths {
-  static const HOME = '/home';
-  static const SPLASH = '/splash';
-  static const IMAGEPREVIEW = '/imagepreview';
+  static const home = '/home';
+  static const splash = '/splash';
+  static const imagepreview = '/imagepreview';
+  static const setting = '/setting';
 }
