@@ -6,9 +6,9 @@ import 'package:aicamera/app/constant/enum.dart';
 import 'package:aicamera/app/constant/themes.dart';
 import 'package:aicamera/app/modules/home/controllers/home_controller.dart';
 import 'package:aicamera/app/modules/imagepreview/views/imagepreview_view.dart';
+import 'package:aicamera/app/routes/app_pages.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:get/get.dart';
 
@@ -33,11 +33,13 @@ class HomeViewState extends State<HomeView>
 
   ///it control the animation of flash mode
   void animationInitalized() {
+    //  hcontroller.controller!.setFlashMode(FlashMode.off);
     hcontroller.flashModeControlRowAnimationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 200));
     hcontroller.flashModeControlRowAnimation = CurvedAnimation(
         parent: hcontroller.flashModeControlRowAnimationController,
         curve: Curves.easeInCubic);
+    //hcontroller.controller!.setFlashMode(FlashMode.off);
   }
 
   ///It will set the camera of the windows
@@ -73,42 +75,30 @@ class HomeViewState extends State<HomeView>
                                           : cameraPreviewWidget())),
                             ],
                           ),
-                          Obx(() => hcontroller.islogoattached.value &&
-                                  hcontroller.logowithImage != null
-                              ? Center(
-                                  child: SizedBox(
-                                  width: 300,
-                                  height: 300,
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(20)),
-                                    child:
-                                        LogoPosition(hcontroller: hcontroller),
-
-                                    //   Image.file(
-                                    //     File(
-                                    //       hcontroller.logowithImage!.path,
-                                    //     ),
-                                    //     fit: BoxFit.fill,
-                                    //   ),
-                                  ),
-                                ))
-                              : Container()),
-                          Obx(
-                            () => hcontroller.logopositionchange.value
-                                ? Container()
-                                : hcontroller.islogo.value
-                                    ? LogoPosition(hcontroller: hcontroller)
-                                    : const SizedBox(
-                                        width: 50,
-                                        height: 50,
-                                        child: ClipRRect(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(20)),
-                                            child: Icon(Icons.face,
-                                                color: Themes.white)),
-                                      ),
-                          ),
+                          // Obx(() => hcontroller.islogoattached.value &&
+                          //         hcontroller.logowithImage != null
+                          //     ? Center(
+                          //         child: Container(
+                          //         decoration: BoxDecoration(
+                          //           border: Border.all(color: Colors.black),
+                          //           borderRadius: const BorderRadius.all(
+                          //               Radius.circular(50)),
+                          //         ),
+                          //         width: 100,
+                          //         height: 100,
+                          //         child: ClipRRect(
+                          //           borderRadius: const BorderRadius.all(
+                          //               Radius.circular(20)),
+                          //           child:
+                          //               LogoPosition(hcontroller: hcontroller),
+                          //         ),
+                          //       ))
+                          //     : Container()),
+                          Obx(() => hcontroller.logopositionchange.value
+                              ? Container()
+                              : hcontroller.islogo.value
+                                  ? LogoPosition(hcontroller: hcontroller)
+                                  : Container()),
                           Obx(
                             () => hcontroller.isImageClicked.isTrue
                                 ? Container()
@@ -168,8 +158,7 @@ class HomeViewState extends State<HomeView>
                                                     0.045),
                                               ),
                                               onPressed: () async {
-                                                await hcontroller
-                                                    .getLogoImage();
+                                                Get.toNamed(Routes.setting);
                                               },
                                             ),
                                           ],
@@ -407,14 +396,6 @@ class HomeViewState extends State<HomeView>
           hcontroller.cameraimageFile = file;
 
           hcontroller.mergingImageWithLogo();
-          Fluttertoast.showToast(
-              msg: "Image Capture",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.CENTER,
-              timeInSecForIosWeb: 1,
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 16.0);
         });
         hcontroller.isImageClicked.value = true;
         Timer(const Duration(seconds: 1), hcontroller.savedImageIntoPath);
@@ -560,87 +541,18 @@ class LogoPosition extends StatelessWidget {
             ? 10
             : null,
         child: hcontroller.logoImageFile == null
-            ? const SizedBox(
+            ? Container()
+            : Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black),
+                  borderRadius: const BorderRadius.all(Radius.circular(50)),
+                ),
                 width: 50,
                 height: 50,
                 child: ClipRRect(
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                    child: Icon(Icons.face, color: Themes.white)))
-            : SizedBox(
-                width: 50,
-                height: 50,
-                child: InkWell(
-                  onTap: () async {
-                    bool value = await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                              title: const Text('Please Select Logo Alignment'),
-                              actions: [
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.topleft;
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Top Left'),
-                                  ),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.topright;
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Top Right'),
-                                  ),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.bottomleft;
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Bottom Left'),
-                                  ),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.bottomright;
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Bottom Right'),
-                                  ),
-                                ),
-                              ]);
-                        });
-                    if (value) {
-                      hcontroller.logopositionchange.value = true;
-                      hcontroller.logopositionchange.value = false;
-                    }
-                  },
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    child: Image.file(File(hcontroller.logoImageFile!.path),
-                        fit: BoxFit.fill),
-                  ),
+                  borderRadius: const BorderRadius.all(Radius.circular(50)),
+                  child: Image.file(File(hcontroller.logoImageFile!.path),
+                      fit: BoxFit.fill),
                 )));
   }
 }

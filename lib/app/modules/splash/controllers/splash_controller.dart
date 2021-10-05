@@ -13,6 +13,6 @@ class SplashController extends GetxController {
   }
 
   void naviation() {
-    Get.offAndToNamed(Routes.HOME);
+    Get.offAndToNamed(Routes.home);
   }
 }
