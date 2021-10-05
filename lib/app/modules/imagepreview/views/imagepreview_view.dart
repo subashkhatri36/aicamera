@@ -23,8 +23,8 @@ class ImagepreviewView extends GetView<ImagepreviewController> {
       body: SafeArea(
         child: arugment != null
             ? Center(
-                child: Image.file(
-                  File(arugment.path),
+                child: Image.memory(
+                  arugment,
                   height: MediaQuery.of(context).size.height,
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.fill,

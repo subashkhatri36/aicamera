@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:aicamera/app/constant/constants.dart';
+import 'package:aicamera/app/constant/enum.dart';
 import 'package:aicamera/app/constant/themes.dart';
 import 'package:aicamera/app/modules/home/controllers/home_controller.dart';
 import 'package:aicamera/app/modules/imagepreview/views/imagepreview_view.dart';
-import 'package:aicamera/app/routes/app_pages.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:get/get.dart';
 
@@ -25,7 +27,17 @@ class HomeViewState extends State<HomeView>
   void initState() {
     ambiguate(WidgetsBinding.instance)?.addObserver(this);
     setCameras();
+    animationInitalized();
     super.initState();
+  }
+
+  ///it control the animation of flash mode
+  void animationInitalized() {
+    hcontroller.flashModeControlRowAnimationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 200));
+    hcontroller.flashModeControlRowAnimation = CurvedAnimation(
+        parent: hcontroller.flashModeControlRowAnimationController,
+        curve: Curves.easeInCubic);
   }
 
   ///It will set the camera of the windows
@@ -34,6 +46,7 @@ class HomeViewState extends State<HomeView>
     onNewCameraSelected(hcontroller.cameras[0]);
   }
 
+//main widget
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,7 +55,133 @@ class HomeViewState extends State<HomeView>
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                Expanded(child: cameraPreviewWidget()),
+                //here is the main work going on....
+                Expanded(
+                  child: RepaintBoundary(
+                      key: hcontroller.screenshotKey,
+                      child: Stack(
+                        children: [
+                          Column(
+                            children: [
+                              Expanded(
+                                  child: Obx(() =>
+                                      hcontroller.isImageClicked.isTrue
+                                          ? Image.file(
+                                              File(hcontroller
+                                                  .cameraimageFile!.path),
+                                              fit: BoxFit.fill)
+                                          : cameraPreviewWidget())),
+                            ],
+                          ),
+                          Obx(() => hcontroller.islogoattached.value &&
+                                  hcontroller.logowithImage != null
+                              ? Center(
+                                  child: SizedBox(
+                                  width: 300,
+                                  height: 300,
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(20)),
+                                    child:
+                                        LogoPosition(hcontroller: hcontroller),
+
+                                    //   Image.file(
+                                    //     File(
+                                    //       hcontroller.logowithImage!.path,
+                                    //     ),
+                                    //     fit: BoxFit.fill,
+                                    //   ),
+                                  ),
+                                ))
+                              : Container()),
+                          Obx(
+                            () => hcontroller.logopositionchange.value
+                                ? Container()
+                                : hcontroller.islogo.value
+                                    ? LogoPosition(hcontroller: hcontroller)
+                                    : const SizedBox(
+                                        width: 50,
+                                        height: 50,
+                                        child: ClipRRect(
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(20)),
+                                            child: Icon(Icons.face,
+                                                color: Themes.white)),
+                                      ),
+                          ),
+                          Obx(
+                            () => hcontroller.isImageClicked.isTrue
+                                ? Container()
+                                : Positioned(
+                                    top: 25,
+                                    right: 10,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            IconButton(
+                                              color: Themes.white,
+                                              icon: Icon(
+                                                hcontroller.controller!.value
+                                                            .flashMode ==
+                                                        FlashMode.off
+                                                    ? Icons.flash_off
+                                                    : hcontroller
+                                                                .controller!
+                                                                .value
+                                                                .flashMode ==
+                                                            FlashMode.auto
+                                                        ? Icons.flash_auto
+                                                        : hcontroller
+                                                                    .controller!
+                                                                    .value
+                                                                    .flashMode ==
+                                                                FlashMode.always
+                                                            ? Icons.flash_on
+                                                            : hcontroller
+                                                                        .controller!
+                                                                        .value
+                                                                        .flashMode ==
+                                                                    FlashMode
+                                                                        .torch
+                                                                ? Icons
+                                                                    .highlight
+                                                                : Icons
+                                                                    .flash_on_outlined,
+                                                size: (MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.045),
+                                              ),
+                                              onPressed: hcontroller
+                                                  .onFlashModeButtonPressed,
+                                            ),
+                                            IconButton(
+                                              color: Themes.white,
+                                              icon: Icon(
+                                                Icons.settings,
+                                                size: (MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.045),
+                                              ),
+                                              onPressed: () async {
+                                                await hcontroller
+                                                    .getLogoImage();
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        flashModeControlRowWidget(),
+                                      ],
+                                    ),
+                                  ),
+                          )
+                        ],
+                      )),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: Constant.defaultPadding * 3.5,
@@ -54,36 +193,55 @@ class HomeViewState extends State<HomeView>
                     children: [
                       InkWell(
                         onTap: () {
-                          Get.to(
-                            ImagepreviewView(hcontroller.imageFile),
-                          );
+                          if (hcontroller.pngBytes != null) {
+                            Get.to(
+                              ImagepreviewView(hcontroller.pngBytes),
+                            );
+                          }
                         },
-                        child: hcontroller.imageFile == null
-                            ? const CircleAvatar(
-                                backgroundColor: Themes.grey,
-                                radius: Constant.defaultRadius * 1.4,
-                              )
-                            : CircleAvatar(
-                                backgroundImage: FileImage(
-                                    File(hcontroller.imageFile!.path)),
-                                radius: Constant.defaultRadius * 1.4,
-                              ),
+                        child: Obx(
+                          () => !hcontroller.isImageClicked.value &&
+                                  hcontroller.pngBytes == null
+                              ? const CircleAvatar(
+                                  backgroundColor: Themes.grey,
+                                  radius: Constant.defaultRadius * 1.4,
+                                )
+                              : hcontroller.pngBytes == null
+                                  ? const CircleAvatar(
+                                      backgroundColor: Themes.grey,
+                                      radius: Constant.defaultRadius * 1.4,
+                                    )
+                                  : CircleAvatar(
+                                      backgroundImage:
+                                          MemoryImage(hcontroller.pngBytes!),
+                                      radius: Constant.defaultRadius * 1.4,
+                                    ),
+                        ),
                       ),
                       GestureDetector(
                         onTap: hcontroller.controller!.value.isInitialized
                             ? onTakePictureButtonPressed
                             : null,
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height * .09,
-                          width: MediaQuery.of(context).size.width * .18,
-                          child: CircleAvatar(
-                            backgroundColor: Themes.white.withOpacity(.8),
-                            radius: Constant.defaultRadius,
-                            child: const CircleAvatar(
-                              radius: Constant.defaultRadius * 1.7,
-                              backgroundColor: Themes.white,
-                            ),
-                          ),
+                        child: Obx(
+                          () => hcontroller.isImageClicked.value
+                              ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                              : SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * .09,
+                                  width:
+                                      MediaQuery.of(context).size.width * .18,
+                                  child: CircleAvatar(
+                                    backgroundColor:
+                                        Themes.white.withOpacity(.8),
+                                    radius: Constant.defaultRadius,
+                                    child: const CircleAvatar(
+                                      radius: Constant.defaultRadius * 1.7,
+                                      backgroundColor: Themes.white,
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                       Obx(() {
@@ -125,6 +283,57 @@ class HomeViewState extends State<HomeView>
     );
   }
 
+  ///set flash controller widget
+  Widget flashModeControlRowWidget() {
+    return SizeTransition(
+      sizeFactor: hcontroller.flashModeControlRowAnimation,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.flash_off),
+            color: hcontroller.controller!.value.flashMode == FlashMode.off
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.off),
+          ),
+          IconButton(
+            icon: const Icon(Icons.flash_auto),
+            color: hcontroller.controller!.value.flashMode == FlashMode.auto
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.auto),
+          ),
+          IconButton(
+            icon: const Icon(Icons.flash_on),
+            color: hcontroller.controller!.value.flashMode == FlashMode.always
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.always),
+          ),
+          IconButton(
+            icon: const Icon(Icons.highlight),
+            color: hcontroller.controller!.value.flashMode == FlashMode.torch
+                ? Colors.orange
+                : Themes.white,
+            onPressed: () => onSetFlashModeButtonPressed(FlashMode.torch),
+          ),
+        ],
+      ),
+    );
+  }
+
+//flash button presseed method.It set the flash  mode
+  void onSetFlashModeButtonPressed(FlashMode mode) {
+    hcontroller.setFlashMode(mode).then((_) {
+      hcontroller.flashModeControlRowAnimationController.reverse();
+      if (mounted) setState(() {});
+      // customSnackbar(
+      //     message: 'Flash mode set to ${mode.toString().split('.').last}');
+    });
+  }
+
   ///It is used to toggle the camera from front to back and back to front
   ///it takes integer index parameter which by default 0
   ///it return void
@@ -141,7 +350,7 @@ class HomeViewState extends State<HomeView>
         // customSnackbar(
         //     title: "",
         //     message:
-        //         'Camera error ${hcontroller.controller!.value.errorDescription}');
+        //                                                                                        'Camera error ${hcontroller.controller!.value.errorDescription}');
       }
     });
 
@@ -171,10 +380,12 @@ class HomeViewState extends State<HomeView>
     cameraController.setFocusPoint(offset);
   }
 
+  //it haldle the zoom scale of camera
   void handleScaleStart(ScaleStartDetails details) {
     hcontroller.baseScale = hcontroller.currentScale;
   }
 
+  //it will update the scale of UI while zooming
   Future<void> handleScaleUpdate(ScaleUpdateDetails details) async {
     // When there are not exactly two fingers on screen don't scale
     if (hcontroller.controller == null || hcontroller.pointers != 2) {
@@ -190,13 +401,23 @@ class HomeViewState extends State<HomeView>
   ///its a method used to press button to click the picture
   ///
   void onTakePictureButtonPressed() {
-    takePicture().then((XFile? file) {
+    takePicture().then((XFile? file) async {
       if (mounted) {
         setState(() {
-          hcontroller.imageFile = file;
+          hcontroller.cameraimageFile = file;
+
+          hcontroller.mergingImageWithLogo();
+          Fluttertoast.showToast(
+              msg: "Image Capture",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
         });
-        // if (file != null)
-        //   customSnackbar(message: 'Picture saved to ${file.path}');
+        hcontroller.isImageClicked.value = true;
+        Timer(const Duration(seconds: 1), hcontroller.savedImageIntoPath);
       }
     });
   }
@@ -250,6 +471,7 @@ class HomeViewState extends State<HomeView>
     }
   }
 
+//app lifecycle state notifier
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.inactive) {
@@ -261,6 +483,7 @@ class HomeViewState extends State<HomeView>
     super.didChangeAppLifecycleState(state);
   }
 
+//camera image
   CameraImage? imgCamera;
   bool isworking = false;
 
@@ -304,6 +527,121 @@ class HomeViewState extends State<HomeView>
   void dispose() async {
     ambiguate(WidgetsBinding.instance)?.removeObserver(this);
     super.dispose();
+  }
+}
+
+//widget which display the logo after selection of it and render
+//in the given position.
+class LogoPosition extends StatelessWidget {
+  const LogoPosition({
+    Key? key,
+    required this.hcontroller,
+  }) : super(key: key);
+
+  final HomeController hcontroller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        top: hcontroller.logoDir == LogoDirection.topleft ||
+                hcontroller.logoDir == LogoDirection.topright
+            ? 30
+            : null,
+        left: hcontroller.logoDir == LogoDirection.topleft ||
+                hcontroller.logoDir == LogoDirection.bottomleft
+            ? 10
+            : null,
+        right: hcontroller.logoDir == LogoDirection.topright ||
+                hcontroller.logoDir == LogoDirection.bottomright
+            ? 10
+            : null,
+        bottom: hcontroller.logoDir == LogoDirection.bottomleft ||
+                hcontroller.logoDir == LogoDirection.bottomright
+            ? 10
+            : null,
+        child: hcontroller.logoImageFile == null
+            ? const SizedBox(
+                width: 50,
+                height: 50,
+                child: ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                    child: Icon(Icons.face, color: Themes.white)))
+            : SizedBox(
+                width: 50,
+                height: 50,
+                child: InkWell(
+                  onTap: () async {
+                    bool value = await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                              title: const Text('Please Select Logo Alignment'),
+                              actions: [
+                                Container(
+                                  alignment: Alignment.center,
+                                  margin: const EdgeInsets.all(
+                                      Constant.defaultmargin / 2),
+                                  child: InkWell(
+                                    onTap: () {
+                                      hcontroller.logoDir =
+                                          LogoDirection.topleft;
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: const Text('Top Left'),
+                                  ),
+                                ),
+                                Container(
+                                  alignment: Alignment.center,
+                                  margin: const EdgeInsets.all(
+                                      Constant.defaultmargin / 2),
+                                  child: InkWell(
+                                    onTap: () {
+                                      hcontroller.logoDir =
+                                          LogoDirection.topright;
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: const Text('Top Right'),
+                                  ),
+                                ),
+                                Container(
+                                  alignment: Alignment.center,
+                                  margin: EdgeInsets.all(
+                                      Constant.defaultmargin / 2),
+                                  child: InkWell(
+                                    onTap: () {
+                                      hcontroller.logoDir =
+                                          LogoDirection.bottomleft;
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: const Text('Bottom Left'),
+                                  ),
+                                ),
+                                Container(
+                                  alignment: Alignment.center,
+                                  margin: const EdgeInsets.all(
+                                      Constant.defaultmargin / 2),
+                                  child: InkWell(
+                                    onTap: () {
+                                      hcontroller.logoDir =
+                                          LogoDirection.bottomright;
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: const Text('Bottom Right'),
+                                  ),
+                                ),
+                              ]);
+                        });
+                    if (value) {
+                      hcontroller.logopositionchange.value = true;
+                      hcontroller.logopositionchange.value = false;
+                    }
+                  },
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    child: Image.file(File(hcontroller.logoImageFile!.path),
+                        fit: BoxFit.fill),
+                  ),
+                )));
   }
 }
 
