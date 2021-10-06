@@ -50,22 +50,34 @@ class SettingView extends GetView<SettingController> {
                                 fit: BoxFit.fill),
                           ),
                         ))
-                      : InkWell(
-                          onTap: () {
-                            hcontroller.getLogoImage();
-                          },
-                          child: CircleAvatar(
-                              radius: Constant.defaultmargin * 3,
-                              //  size:constant.defaultfontsize
-                              backgroundColor: Themes.grey,
-                              child: Text(
-                                'Logo',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyText1!
-                                    .copyWith(color: Colors.white),
-                              )),
-                        ),
+                      : controller.setting.logoImage.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(50)),
+                              child: Image.file(
+                                  File(
+                                    controller.setting.logoImage,
+                                  ),
+                                  height: 100,
+                                  width: 100,
+                                  fit: BoxFit.fill),
+                            )
+                          : InkWell(
+                              onTap: () {
+                                hcontroller.getLogoImage();
+                              },
+                              child: CircleAvatar(
+                                  radius: Constant.defaultmargin * 3,
+                                  //  size:constant.defaultfontsize
+                                  backgroundColor: Themes.grey,
+                                  child: Text(
+                                    'Logo',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyText1!
+                                        .copyWith(color: Colors.white),
+                                  )),
+                            ),
             ),
             const SizedBox(
               height: Constant.defaultmargin,
@@ -84,6 +96,9 @@ class SettingView extends GetView<SettingController> {
                   onPressed: () {
                     hcontroller.logoImageFile = null;
                     hcontroller.islogo.value = false;
+                    controller.setting.logoImage = '';
+                    controller.setting.logoPosition = "Top Left";
+                    controller.update();
                   },
                   textColor: Colors.white,
                 ),
@@ -91,6 +106,14 @@ class SettingView extends GetView<SettingController> {
                   label: 'Change Logo',
                   onPressed: () {
                     hcontroller.getLogoImage();
+                    if (hcontroller.logoImageFile!.path.isNotEmpty) {
+                      controller.setting.logoImage =
+                          hcontroller.logoImageFile!.path;
+                    }
+                    if (controller.setting.logoPosition.isEmpty) {
+                      controller.setting.logoPosition = 'Top Left';
+                    }
+                    controller.updateSetting();
                   },
                   textColor: Colors.white,
                 ),
@@ -111,6 +134,9 @@ class SettingView extends GetView<SettingController> {
                                     onTap: () {
                                       hcontroller.logoDir =
                                           LogoDirection.topleft;
+                                      controller.setting.logoPosition =
+                                          'Top Left';
+                                      controller.updateSetting();
                                       Navigator.of(context).pop(true);
                                     },
                                     child: const Text('Top Left'),
@@ -124,6 +150,9 @@ class SettingView extends GetView<SettingController> {
                                     onTap: () {
                                       hcontroller.logoDir =
                                           LogoDirection.topright;
+                                      controller.setting.logoPosition =
+                                          'Top Right';
+                                      controller.updateSetting();
                                       Navigator.of(context).pop(true);
                                     },
                                     child: const Text('Top Right'),
@@ -137,6 +166,9 @@ class SettingView extends GetView<SettingController> {
                                     onTap: () {
                                       hcontroller.logoDir =
                                           LogoDirection.bottomleft;
+                                      controller.setting.logoPosition =
+                                          'Bottom Left';
+                                      controller.updateSetting();
                                       Navigator.of(context).pop(true);
                                     },
                                     child: const Text('Bottom Left'),
@@ -150,6 +182,9 @@ class SettingView extends GetView<SettingController> {
                                     onTap: () {
                                       hcontroller.logoDir =
                                           LogoDirection.bottomright;
+                                      controller.setting.logoPosition =
+                                          'Bottom Right';
+                                      controller.updateSetting();
                                       Navigator.of(context).pop(true);
                                     },
                                     child: const Text('Bottom Right'),
