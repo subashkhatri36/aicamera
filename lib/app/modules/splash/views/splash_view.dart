@@ -13,17 +13,24 @@ class SplashView extends GetView<SplashController> {
   Widget build(BuildContext context) {
     appsize.sizeinit(context);
     controller.loadPage();
-    print(appsize.height);
     return Scaffold(
       body: Center(
           child: Column(
-        // ignore: prefer_const_literals_to_create_immutables
-        children: [
-          const FlutterLogo(
-            size: 30,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: const [
+          FlutterLogo(
+            size: 50,
             textColor: Colors.red,
           ),
-          const NormalText('Opening Camera'),
+          SizedBox(
+            height: 20,
+          ),
+          CircularProgressIndicator(),
+          SizedBox(
+            height: 20,
+          ),
+          NormalText('Opening Camera'),
         ],
       )),
     );

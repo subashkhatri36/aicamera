@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aicamera/app/constant/constants.dart';
+import 'package:aicamera/app/constant/controller.dart';
 import 'package:aicamera/app/constant/enum.dart';
 import 'package:aicamera/app/constant/themes.dart';
 import 'package:aicamera/app/modules/home/controllers/home_controller.dart';
@@ -51,6 +52,7 @@ class HomeViewState extends State<HomeView>
 //main widget
   @override
   Widget build(BuildContext context) {
+    print("home logo image " + appController.setting.logoImage);
     return Scaffold(
       key: scaffoldKey,
       body: hcontroller.controller == null
@@ -75,28 +77,12 @@ class HomeViewState extends State<HomeView>
                                           : cameraPreviewWidget())),
                             ],
                           ),
-                          // Obx(() => hcontroller.islogoattached.value &&
-                          //         hcontroller.logowithImage != null
-                          //     ? Center(
-                          //         child: Container(
-                          //         decoration: BoxDecoration(
-                          //           border: Border.all(color: Colors.black),
-                          //           borderRadius: const BorderRadius.all(
-                          //               Radius.circular(50)),
-                          //         ),
-                          //         width: 100,
-                          //         height: 100,
-                          //         child: ClipRRect(
-                          //           borderRadius: const BorderRadius.all(
-                          //               Radius.circular(20)),
-                          //           child:
-                          //               LogoPosition(hcontroller: hcontroller),
-                          //         ),
-                          //       ))
-                          //     : Container()),
-                          Obx(() => hcontroller.logopositionchange.value
-                              ? Container()
-                              : hcontroller.islogo.value
+                          Obx(() => appController.logopositionchange.value
+                              ? appController.islogo.value
+                                  ? LogoPosition(hcontroller: hcontroller)
+                                  : Container()
+                              : appController.islogo.value ||
+                                      appController.islogo.value
                                   ? LogoPosition(hcontroller: hcontroller)
                                   : Container()),
                           Obx(
@@ -524,24 +510,37 @@ class LogoPosition extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        top: hcontroller.logoDir == LogoDirection.topleft ||
-                hcontroller.logoDir == LogoDirection.topright
+        top: appController.logoDir == LogoDirection.topleft ||
+                appController.logoDir == LogoDirection.topright
             ? 30
             : null,
-        left: hcontroller.logoDir == LogoDirection.topleft ||
-                hcontroller.logoDir == LogoDirection.bottomleft
+        left: appController.logoDir == LogoDirection.topleft ||
+                appController.logoDir == LogoDirection.bottomleft
             ? 10
             : null,
-        right: hcontroller.logoDir == LogoDirection.topright ||
-                hcontroller.logoDir == LogoDirection.bottomright
+        right: appController.logoDir == LogoDirection.topright ||
+                appController.logoDir == LogoDirection.bottomright
             ? 10
             : null,
-        bottom: hcontroller.logoDir == LogoDirection.bottomleft ||
-                hcontroller.logoDir == LogoDirection.bottomright
+        bottom: appController.logoDir == LogoDirection.bottomleft ||
+                appController.logoDir == LogoDirection.bottomright
             ? 10
             : null,
         child: hcontroller.logoImageFile == null
-            ? Container()
+            ? appController.setting.logoImage.isNotEmpty
+                ? Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black),
+                      borderRadius: const BorderRadius.all(Radius.circular(50)),
+                    ),
+                    width: 50,
+                    height: 50,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.all(Radius.circular(50)),
+                      child: Image.file(File(appController.setting.logoImage),
+                          fit: BoxFit.fill),
+                    ))
+                : Container()
             : Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.black),

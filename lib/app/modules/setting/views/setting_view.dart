@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:aicamera/app/constant/constants.dart';
+import 'package:aicamera/app/constant/controller.dart';
 import 'package:aicamera/app/constant/enum.dart';
 import 'package:aicamera/app/constant/themes.dart';
 import 'package:aicamera/app/modules/home/controllers/home_controller.dart';
@@ -18,6 +19,7 @@ class SettingView extends GetView<SettingController> {
   @override
   Widget build(BuildContext context) {
     final hcontroller = Get.find<HomeController>();
+    print("logo image " + appController.setting.logoImage);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -29,176 +31,184 @@ class SettingView extends GetView<SettingController> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Obx(
-              () =>
-                  hcontroller.islogo.value && hcontroller.logoImageFile != null
-                      ? Center(
-                          child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black),
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(50)),
-                          ),
-                          width: 100,
-                          height: 100,
-                          child: ClipRRect(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(50)),
-                            child: Image.file(
-                                File(hcontroller.logoImageFile!.path),
-                                height: 100,
-                                width: 100,
-                                fit: BoxFit.fill),
-                          ),
-                        ))
-                      : controller.setting.logoImage.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(50)),
-                              child: Image.file(
-                                  File(
-                                    controller.setting.logoImage,
-                                  ),
-                                  height: 100,
-                                  width: 100,
-                                  fit: BoxFit.fill),
-                            )
-                          : InkWell(
-                              onTap: () {
-                                hcontroller.getLogoImage();
-                              },
-                              child: CircleAvatar(
-                                  radius: Constant.defaultmargin * 3,
-                                  //  size:constant.defaultfontsize
-                                  backgroundColor: Themes.grey,
-                                  child: Text(
-                                    'Logo',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyText1!
-                                        .copyWith(color: Colors.white),
-                                  )),
-                            ),
+              () => appController.islogo.value &&
+                      (hcontroller.logoImageFile != null ||
+                          appController.setting.logoImage.isNotEmpty)
+                  ? Center(
+                      child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(50)),
+                      ),
+                      width: 100,
+                      height: 100,
+                      child: ClipRRect(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(50)),
+                        child: hcontroller.logoImageFile == null
+                            ? Image.file(File(appController.setting.logoImage))
+                            : Image.file(File(hcontroller.logoImageFile!.path),
+                                height: 150, width: 150, fit: BoxFit.fill),
+                      ),
+                    ))
+                  : appController.setting.logoImage.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(50)),
+                          child: Image.file(
+                              File(
+                                appController.setting.logoImage,
+                              ),
+                              height: 150,
+                              width: 150,
+                              fit: BoxFit.fill),
+                        )
+                      : CircleAvatar(
+                          radius: Constant.defaultmargin * 3,
+                          //  size:constant.defaultfontsize
+                          backgroundColor: Themes.grey,
+                          child: Text(
+                            'Logo',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1!
+                                .copyWith(color: Colors.white),
+                          )),
             ),
             const SizedBox(
               height: Constant.defaultmargin,
             ),
-            Obx(() => hcontroller.logopositionchange.value
+            Obx(() => appController.alignmentChange.value
                 ? const LogoAlighmentDisplay()
                 : const LogoAlighmentDisplay()),
             const SizedBox(
               height: Constant.defaultmargin,
             ),
-            Row(
+            Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                CustomButton(
-                  label: 'Remove Logo',
-                  onPressed: () {
-                    hcontroller.logoImageFile = null;
-                    hcontroller.islogo.value = false;
-                    controller.setting.logoImage = '';
-                    controller.setting.logoPosition = "Top Left";
-                    controller.update();
-                  },
-                  textColor: Colors.white,
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * .5,
+                  child: CustomButton(
+                    backgroundColor: Colors.red,
+                    label: 'Remove Logo',
+                    onPressed: () {
+                      hcontroller.logoImageFile = null;
+                      appController.islogo.value = false;
+                      appController.setting.logoImage = '';
+                      appController.setting.logoPosition = "Top Left";
+                      appController.removeSettings();
+                    },
+                    textColor: Colors.white,
+                  ),
                 ),
-                CustomButton(
-                  label: 'Change Logo',
-                  onPressed: () {
-                    hcontroller.getLogoImage();
-                    if (hcontroller.logoImageFile!.path.isNotEmpty) {
-                      controller.setting.logoImage =
-                          hcontroller.logoImageFile!.path;
-                    }
-                    if (controller.setting.logoPosition.isEmpty) {
-                      controller.setting.logoPosition = 'Top Left';
-                    }
-                    controller.updateSetting();
-                  },
-                  textColor: Colors.white,
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * .5,
+                  child: CustomButton(
+                    backgroundColor: Colors.blue,
+                    label: 'Change Logo',
+                    onPressed: () async {
+                      await hcontroller.getLogoImage();
+                      if (hcontroller.logoImageFile != null) {
+                        appController.setting.logoImage =
+                            hcontroller.logoImageFile!.path;
+                      }
+                      if (appController.setting.logoPosition.isEmpty) {
+                        appController.setting.logoPosition = 'Top Left';
+                      }
+                      appController.updateSetting();
+                    },
+                    textColor: Colors.white,
+                  ),
                 ),
-                CustomButton(
-                  label: 'Align Logo',
-                  onPressed: () async {
-                    bool value = await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                              title: const Text('Please Select Logo Alignment'),
-                              actions: [
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.topleft;
-                                      controller.setting.logoPosition =
-                                          'Top Left';
-                                      controller.updateSetting();
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Top Left'),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * .5,
+                  child: CustomButton(
+                    backgroundColor: Colors.green,
+                    label: 'Align Logo',
+                    onPressed: () async {
+                      bool value = await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                                title:
+                                    const Text('Please Select Logo Alignment'),
+                                actions: [
+                                  Container(
+                                    alignment: Alignment.center,
+                                    margin: const EdgeInsets.all(
+                                        Constant.defaultmargin / 2),
+                                    child: InkWell(
+                                      onTap: () {
+                                        appController.logoDir =
+                                            LogoDirection.topleft;
+                                        appController.setting.logoPosition =
+                                            'Top Left';
+                                        appController.updateSetting();
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: const Text('Top Left'),
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.topright;
-                                      controller.setting.logoPosition =
-                                          'Top Right';
-                                      controller.updateSetting();
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Top Right'),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    margin: const EdgeInsets.all(
+                                        Constant.defaultmargin / 2),
+                                    child: InkWell(
+                                      onTap: () {
+                                        appController.logoDir =
+                                            LogoDirection.topright;
+                                        appController.setting.logoPosition =
+                                            'Top Right';
+                                        appController.updateSetting();
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: const Text('Top Right'),
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.bottomleft;
-                                      controller.setting.logoPosition =
-                                          'Bottom Left';
-                                      controller.updateSetting();
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Bottom Left'),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    margin: const EdgeInsets.all(
+                                        Constant.defaultmargin / 2),
+                                    child: InkWell(
+                                      onTap: () {
+                                        appController.logoDir =
+                                            LogoDirection.bottomleft;
+                                        appController.setting.logoPosition =
+                                            'Bottom Left';
+                                        appController.updateSetting();
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: const Text('Bottom Left'),
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(
-                                      Constant.defaultmargin / 2),
-                                  child: InkWell(
-                                    onTap: () {
-                                      hcontroller.logoDir =
-                                          LogoDirection.bottomright;
-                                      controller.setting.logoPosition =
-                                          'Bottom Right';
-                                      controller.updateSetting();
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: const Text('Bottom Right'),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    margin: const EdgeInsets.all(
+                                        Constant.defaultmargin / 2),
+                                    child: InkWell(
+                                      onTap: () {
+                                        appController.logoDir =
+                                            LogoDirection.bottomright;
+                                        appController.setting.logoPosition =
+                                            'Bottom Right';
+                                        appController.updateSetting();
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: const Text('Bottom Right'),
+                                    ),
                                   ),
-                                ),
-                              ]);
-                        });
+                                ]);
+                          });
 
-                    if (value) {
-                      hcontroller.logopositionchange.value = true;
-                      hcontroller.logopositionchange.value = false;
-                    }
-                  },
-                  textColor: Colors.white,
+                      if (value) {
+                        appController.logopositionchange.value = true;
+                        appController.logopositionchange.value = false;
+                      }
+                    },
+                    textColor: Colors.white,
+                  ),
                 ),
               ],
             )
@@ -217,7 +227,7 @@ class LogoAlighmentDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hcontroller = Get.find<HomeController>();
-    return hcontroller.logoDir == LogoDirection.bottomright
+    return appController.logoDir == LogoDirection.bottomright
         ? Text(
             'Logo Alignment : Bottom Right',
             style: Theme.of(context)
@@ -225,7 +235,7 @@ class LogoAlighmentDisplay extends StatelessWidget {
                 .headline3!
                 .copyWith(fontWeight: FontWeight.bold),
           )
-        : hcontroller.logoDir == LogoDirection.bottomleft
+        : appController.logoDir == LogoDirection.bottomleft
             ? Text(
                 'Logo Alignment : Bottom Left',
                 style: Theme.of(context)
@@ -233,7 +243,7 @@ class LogoAlighmentDisplay extends StatelessWidget {
                     .headline3!
                     .copyWith(fontWeight: FontWeight.bold),
               )
-            : hcontroller.logoDir == LogoDirection.topleft
+            : appController.logoDir == LogoDirection.topleft
                 ? Text(
                     'Logo Alignment : Top Left',
                     style: Theme.of(context)

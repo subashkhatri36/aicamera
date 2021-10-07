@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:aicamera/app/constant/controller.dart';
 import 'package:aicamera/app/constant/enum.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -40,16 +41,10 @@ class HomeController extends GetxController {
   ///this variable will store converted both logo and capture image
   File? logowithImage;
 
-  //this will give your the direction of logo
-  LogoDirection logoDir = LogoDirection.topleft;
-  //this variable controll the ui where logo should be located
-  RxBool logopositionchange = false.obs;
   Uint8List? pngBytes;
   //image picker
   final ImagePicker picker = ImagePicker();
 
-//use to check if there is logo selected or not in ui
-  RxBool islogo = false.obs;
   //this variable will identify if logo is attached along with image or not
   RxBool islogoattached = false.obs;
   //this varaible will remind if image is clicked or not
@@ -102,7 +97,7 @@ class HomeController extends GetxController {
         imageQuality: 80,
       );
       logoImageFile = pickedFile;
-      islogo.value = true;
+      appController.islogo.value = true;
     } catch (e) {
       print('error');
     }
